@@ -1,4 +1,5 @@
 # glassmorphism-ui
+> **Languages:** **English** · [فارسی](README.fa.md)
 
 An **Agent Skill** that turns any project's existing UI into a frosted-glass
 (glassmorphism) design — **using the colours the project already has**.
