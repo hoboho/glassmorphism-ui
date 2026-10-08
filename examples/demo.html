@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>glassmorphism-ui — live demo</title>
+<style>
+  :root {
+    --blur: 22px; --blur-strong: 34px;
+    --radius-xl: 28px; --radius-lg: 22px; --radius-md: 16px; --radius-sm: 12px;
+    --ease: cubic-bezier(.22,1,.36,1);
+    --spring: cubic-bezier(.34,1.56,.64,1);
+  }
+
+  /* ── Themes: only the neutrals differ; the accent is injected by JS ── */
+  [data-theme='light'] {
+    --bg-0:#eef2fb; --bg-1:#f7f9ff;
+    --glass:rgba(255,255,255,.55); --glass-2:rgba(255,255,255,.38);
+    --glass-border:rgba(255,255,255,.75);
+    --glass-shadow:0 12px 40px rgba(31,45,92,.16);
+    --text:#101828; --text-2:#5b6478; --text-3:#8b93a7;
+    --input-bg:rgba(255,255,255,.6);
+    --blob-opacity:.45; --blob-blur:80px;
+  }
+  [data-theme='dark'] {
+    --bg-0:#070a16; --bg-1:#0d1224;
+    --glass:rgba(24,30,54,.55); --glass-2:rgba(30,38,66,.35);
+    --glass-border:rgba(255,255,255,.12);
+    --glass-shadow:0 16px 48px rgba(0,0,0,.55);
+    --text:#f4f6ff; --text-2:#a7b0cc; --text-3:#6f7896;
+    --input-bg:rgba(255,255,255,.06);
+    --blob-opacity:.55; --blob-blur:70px;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body {
+    min-height:100dvh; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+    background:var(--bg-0); color:var(--text); overflow-x:hidden;
+    transition:background .5s var(--ease), color .3s var(--ease);
+    padding:24px 16px 60px;
+  }
+
+  /* ── Aurora: the thing the glass blurs ── */
+  #bg { position:fixed; inset:0; z-index:0; overflow:hidden;
+        background:linear-gradient(160deg,var(--bg-0),var(--bg-1)); }
+  .blob { position:absolute; border-radius:50%; filter:blur(var(--blob-blur));
+          opacity:var(--blob-opacity); will-change:transform;
+          animation:drift 22s var(--ease) infinite alternate;
+          transition:background .6s var(--ease); }
+  .b1{width:60vw;height:60vw;background:var(--blob-1);top:-18vw;left:-12vw;animation-duration:19s}
+  .b2{width:52vw;height:52vw;background:var(--blob-2);top:22vh;right:-16vw;animation-duration:24s;animation-delay:-6s}
+  .b3{width:46vw;height:46vw;background:var(--blob-3);bottom:-14vw;left:8vw;animation-duration:27s;animation-delay:-12s}
+  .b4{width:40vw;height:40vw;background:var(--blob-4);bottom:18vh;right:6vw;animation-duration:21s;animation-delay:-3s}
+  @keyframes drift{
+    0%{transform:translate3d(0,0,0) scale(1)}
+    50%{transform:translate3d(4vw,-5vh,0) scale(1.12)}
+    100%{transform:translate3d(-5vw,6vh,0) scale(.94)}
+  }
+
+  /* ── The glass recipe ── */
+  .glass{ background:var(--glass);
+    backdrop-filter:blur(var(--blur)) saturate(165%);
+    -webkit-backdrop-filter:blur(var(--blur)) saturate(165%);
+    border:1px solid var(--glass-border); box-shadow:var(--glass-shadow); }
+  .glass-soft{ background:var(--glass-2);
+    backdrop-filter:blur(var(--blur-strong)) saturate(165%);
+    -webkit-backdrop-filter:blur(var(--blur-strong)) saturate(165%);
+    border:1px solid var(--glass-border); }
+
+  main{position:relative;z-index:1;max-width:460px;margin:0 auto;
+       display:flex;flex-direction:column;gap:16px;animation:fadeUp .5s var(--ease) both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+  .bar{border-radius:var(--radius-lg);padding:12px 16px;display:flex;align-items:center;gap:12px}
+  .logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:19px;
+        background:linear-gradient(135deg,var(--primary),var(--primary-2));
+        box-shadow:0 8px 20px var(--ring);transition:box-shadow .3s var(--ease)}
+  h1{font-size:17px;font-weight:700;letter-spacing:-.2px}
+  .sub{font-size:11px;color:var(--text-3);font-weight:500}
+
+  .card{border-radius:var(--radius-lg);padding:16px;transition:transform .3s var(--spring)}
+  .card:active{transform:scale(.97)}
+  .card-title{font-size:15.5px;font-weight:700;margin-bottom:3px}
+  .card-sub{font-size:12.5px;color:var(--text-3)}
+  .row{display:flex;justify-content:space-between;font-size:13px;margin-top:9px}
+  .row .k{color:var(--text-3);font-weight:500}
+  .row .v{font-weight:700}
+
+  .progress{height:7px;border-radius:10px;background:var(--input-bg);overflow:hidden;margin-top:14px}
+  .progress>i{display:block;height:100%;border-radius:10px;width:0;
+    background:linear-gradient(90deg,var(--primary),var(--primary-2));
+    transition:width .8s var(--ease), background .4s var(--ease)}
+
+  .badge{font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;white-space:nowrap}
+  .badge.on{background:color-mix(in srgb, var(--primary) 15%, transparent);
+    color:var(--primary);border:1px solid color-mix(in srgb, var(--primary) 30%, transparent)}
+
+  .btn{width:100%;padding:14px;border-radius:var(--radius-sm);font-size:14.5px;font-weight:700;
+    border:none;cursor:pointer;color:#fff;
+    background:linear-gradient(135deg,var(--primary),var(--primary-2));
+    box-shadow:0 10px 26px -8px var(--ring);
+    transition:transform .25s var(--spring), box-shadow .3s var(--ease)}
+  .btn:active{transform:scale(.97)}
+
+  .input{width:100%;padding:13px 14px;border-radius:var(--radius-sm);
+    background:var(--input-bg);border:1px solid var(--glass-border);
+    font-size:14px;font-weight:500;color:var(--text);outline:none;
+    transition:border-color .25s, box-shadow .25s}
+  .input::placeholder{color:var(--text-3)}
+  .input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--ring)}
+
+  .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;padding:8px 15px;border-radius:20px;font-size:12.5px;font-weight:700;
+    cursor:pointer;background:var(--input-bg);border:1px solid var(--glass-border);
+    color:var(--text-3);transition:all .25s var(--ease)}
+  .chip.on{background:linear-gradient(135deg,var(--primary),var(--primary-2));
+    color:#fff;border-color:transparent;box-shadow:0 6px 16px -6px var(--ring)}
+
+  .controls{border-radius:var(--radius-lg);padding:14px 16px;display:flex;
+    flex-direction:column;gap:12px}
+  .ctl-label{font-size:11px;font-weight:700;color:var(--text-3);letter-spacing:.4px;text-transform:uppercase}
+  .swatches{display:flex;gap:10px;flex-wrap:wrap}
+  .sw{width:34px;height:34px;border-radius:11px;border:2px solid var(--glass-border);cursor:pointer;
+    transition:transform .3s var(--spring)}
+  .sw:active{transform:scale(.88)}
+  .sw[aria-pressed='true']{outline:2px solid var(--primary);outline-offset:2px}
+  .seg{display:flex;gap:6px;padding:5px;border-radius:14px;background:var(--input-bg);border:1px solid var(--glass-border)}
+  .seg button{flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;
+    background:transparent;color:var(--text-3);transition:all .28s var(--ease)}
+  .seg button.on{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;
+    box-shadow:0 6px 16px -6px var(--ring)}
+
+  .note{font-size:12px;color:var(--text-3);text-align:center;line-height:1.7}
+
+  @media (prefers-reduced-motion: reduce){ *,*::before,*::after{
+    animation-duration:.001ms!important; transition-duration:.001ms!important } }
+</style>
+</head>
+<body>
+
+<div id="bg"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span></div>
+
+<main>
+  <header class="bar glass">
+    <div class="logo">🛠️</div>
+    <div>
+      <h1>glassmorphism-ui</h1>
+      <div class="sub">every surface follows the accent</div>
+    </div>
+  </header>
+
+  <section class="controls glass-soft">
+    <div>
+      <div class="ctl-label">accent</div>
+      <div class="swatches" id="swatches"></div>
+    </div>
+    <div>
+      <div class="ctl-label">theme</div>
+      <div class="seg" id="seg">
+        <button data-theme="dark" class="on">Dark</button>
+        <button data-theme="light">Light</button>
+      </div>
+    </div>
+  </section>
+
+  <article class="card glass">
+    <div style="display:flex;align-items:flex-start;gap:12px">
+      <div class="logo" style="width:46px;height:46px;border-radius:15px;font-size:20px">📦</div>
+      <div style="flex:1">
+        <div class="card-title">Frosted surface</div>
+        <div class="card-sub">blur · saturate · 1px lit edge</div>
+      </div>
+      <span class="badge on">live</span>
+    </div>
+    <div class="progress"><i id="bar"></i></div>
+    <div class="row"><span class="k">backdrop-filter</span><span class="v">blur(22px) saturate(165%)</span></div>
+    <div class="row"><span class="k">ring</span><span class="v" id="ringval">—</span></div>
+  </article>
+
+  <input class="input" id="inp" placeholder="Focus me — the ring uses the accent">
+
+  <div class="chips" id="chips">
+    <button class="chip on">Selected</button>
+    <button class="chip">Another</button>
+    <button class="chip">Third</button>
+  </div>
+
+  <button class="btn" id="btn">Gradient button</button>
+
+  <p class="note">Change the accent — the blobs, the glow, the gradient<br>and the focus ring all follow. No palette was hard-coded.</p>
+</main>
+
+<script>
+/* ── Colour helpers: derive a full glass palette from ONE accent hex ── */
+const hexToRgb = (hex) => {
+  const h = hex.replace('#', '');
+  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+};
+
+const rgbToHsl = ([r, g, b]) => {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0));
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return [h * 360, s * 100, l * 100];
+};
+
+const hslToHex = ([h, s, l]) => {
+  h = ((h % 360) + 360) % 360; s /= 100; l /= 100;
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  const seg = Math.floor(h / 60) % 6;
+  const rgb = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][seg];
+  return '#' + rgb.map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('');
+};
+
+const rgba = (hex, a) => { const [r, g, b] = hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; };
+
+/** Apply one accent colour to the whole design. */
+function applyAccent(hex) {
+  const [h, s, l] = rgbToHsl(hexToRgb(hex));
+  const root = document.documentElement;
+  const set = (k, v) => root.style.setProperty(k, v);
+
+  const dark = root.dataset.theme === 'dark';
+
+  set('--primary', hex);
+  set('--primary-2', hslToHex([h + 28, Math.min(100, s + 12), Math.min(78, l + 14)]));
+  set('--ring', rgba(hex, dark ? 0.45 : 0.35));
+  set('--chip', rgba(hex, dark ? 0.16 : 0.1));
+
+  /* blobs: the accent plus analogous neighbours and one contrasting hue */
+  set('--blob-1', hslToHex([h, Math.min(100, s + 10), 52]));
+  set('--blob-2', hslToHex([h + 42, Math.min(100, s + 6), 50]));
+  set('--blob-3', hslToHex([h + 168, 62, 46]));
+  set('--blob-4', hslToHex([h - 46, 74, 62]));
+
+  const ring = document.getElementById('ringval');
+  if (ring) ring.textContent = rgba(hex, dark ? 0.45 : 0.35);
+}
+
+/* ── Accent swatches ── */
+const ACCENTS = ['#4f6bff', '#12b76a', '#f79009', '#f04438', '#a855f7', '#0ea5e9'];
+let currentAccent = ACCENTS[0];
+
+const swatches = document.getElementById('swatches');
+ACCENTS.forEach((hex, i) => {
+  const b = document.createElement('button');
+  b.className = 'sw';
+  b.style.background = hex;
+  b.setAttribute('aria-label', `accent ${hex}`);
+  b.setAttribute('aria-pressed', String(i === 0));
+  b.addEventListener('click', () => {
+    swatches.querySelectorAll('.sw').forEach((s) => s.setAttribute('aria-pressed', 'false'));
+    b.setAttribute('aria-pressed', 'true');
+    currentAccent = hex;
+    applyAccent(hex);
+  });
+  swatches.appendChild(b);
+});
+
+/* ── Theme toggle ── */
+document.getElementById('seg').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-theme]');
+  if (!btn) return;
+  document.documentElement.dataset.theme = btn.dataset.theme;
+  document.querySelectorAll('#seg button').forEach((x) => x.classList.toggle('on', x === btn));
+  applyAccent(currentAccent);   /* re-derive the alpha-based tokens for the new theme */
+});
+
+/* ── Chip selection ── */
+document.getElementById('chips').addEventListener('click', (e) => {
+  const c = e.target.closest('.chip');
+  if (!c) return;
+  document.querySelectorAll('.chip').forEach((x) => x.classList.toggle('on', x === c));
+});
+
+/* ── Demo button: progress + toast-ish feedback ── */
+let pct = 62;
+const bar = document.getElementById('bar');
+requestAnimationFrame(() => { bar.style.width = pct + '%'; });
+
+document.getElementById('btn').addEventListener('click', () => {
+  pct = pct >= 100 ? 20 : Math.min(100, pct + 13);
+  bar.style.width = pct + '%';
+});
+
+/* ── Boot ── */
+applyAccent(ACCENTS[0]);
+</script>
+</body>
+</html>
